@@ -12,6 +12,7 @@ namespace ProductionEntryWorkerService.Modules
 
         public static string SerialPortFile = $"{SettingPath}\\port.txt";
 
+        public static string UrlFile = $"{SettingPath}\\url.txt";
 
         public static string BinPath = $"{BasePath}\\bin";
 

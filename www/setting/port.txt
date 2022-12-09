@@ -1,1 +1,1 @@
-COM1,19200,None,8,One
+COM3,19200,None,8,One

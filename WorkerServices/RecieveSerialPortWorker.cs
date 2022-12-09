@@ -37,6 +37,8 @@ namespace ProductionEntryWorkerService.WorkerServices
 
             LoadDataPattern();
 
+            LoadUrl();
+
             Setting.InitSerialPort();
 
             LoadSettingAndOpenSerialPort(1, Param.SerialPortFile, serialPort1);
@@ -77,6 +79,13 @@ namespace ProductionEntryWorkerService.WorkerServices
 
                             foreach (string file in getFiles)
                             {
+                                string readdata = File.ReadAllText(file);
+
+                                if (readdata == "")
+                                {
+                                    File.Delete(file);
+                                }
+
                                 string[] parts = File.ReadAllText(file).Split(',');
 
                                 var data = new ProdRecordReq()
@@ -103,22 +112,28 @@ namespace ProductionEntryWorkerService.WorkerServices
                             {
                                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                                 {
+
                                     foreach (var file in getFiles)
                                     {
                                         File.Delete(file);
                                     }
                                     result = true; // exit while loop
+
                                 }
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError($"{ex.Message} of \n { Param.UploadUrl} \n");
+                        string msg = ex.HResult.ToString();
+                        if (msg != "-2147024864")
+                        {
+                            _logger.LogError($"{ex.Message} of \n { Param.UploadUrl} \n");
 
-                        Task.Delay(30_000).Wait();
+                            Task.Delay(30_000).Wait();
 
-                        result = retryCount == 0 ? true : false;
+                        }
+                            result = retryCount == 0 ? true : false;
                     }
 
                 }
@@ -179,6 +194,30 @@ namespace ProductionEntryWorkerService.WorkerServices
                 _logger.LogError(ex.Message);
             }
         }
+        private void LoadUrl()
+        {
+            try
+            {
+                string path = Param.UrlFile;
+
+                if (File.Exists(path))
+                {
+                    Param.UploadUrl = File.ReadAllText(path);
+
+                    _logger.LogInformation($"Upload Url = { Param.UploadUrl} ");
+                }
+                else
+                {
+                    string dumy = "http://localhost:8085/api/v1/Board/production-record";
+                    File.WriteAllText(path, dumy);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+            }
+        }
+
         private void LoadSettingAndOpenSerialPort(int port, string destination, SerialPort serialPort)
         {
             try
@@ -251,14 +290,13 @@ namespace ProductionEntryWorkerService.WorkerServices
             ReadingText1 = sp.ReadExisting().Trim('\r');
 
             serialPort1.DiscardInBuffer();
-            Console.WriteLine("Data Received Port 1: {1}", ReadingText1);
         }
 
         private void OnTimerElapsedAsync(object sender, ElapsedEventArgs e)
         {
             if (ReadingText1 != null && ReadingText1 != "")
             {
-                _logger?.LogInformation(ReadingText1);
+                _logger?.LogInformation($"receive data => {ReadingText1}");
 
                 if (ReadingText1.Length == Param.Pattern.TotalLength)
                 {
