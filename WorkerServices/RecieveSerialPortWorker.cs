@@ -308,8 +308,8 @@ namespace ProductionEntryWorkerService.WorkerServices
 
         private async void AsyncInsertFile(string readtxt)
         {
-            string productId = readtxt.Substring(Param.Pattern.Start1, Param.Pattern.Length1);
-            string partNumber = readtxt.Substring(Param.Pattern.Start2, Param.Pattern.Length2);
+            string partNumber = readtxt.Substring(Param.Pattern.Start1, Param.Pattern.Length1);
+            string productId = readtxt.Substring(Param.Pattern.Start2, Param.Pattern.Length2);
 
             CultureInfo ci = new CultureInfo("en-US");
             Thread.CurrentThread.CurrentCulture = ci;
